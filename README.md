@@ -115,7 +115,8 @@ The base template might look like this:
 As I said, checking of the inputs is already implemented for you. First of all,
 if all the values are correct, `form_valid` will be set to `True`. Individual
 text controls get the `gap-valid` class if the answer is right and `gap-invalid` if
-it is not (and if the control is not empty).
+it is not (and if the control is not empty). Actual answers are accessible through
+the `{{ answers }}` variable.
 
 With a little bit of CSS magic you will be able to get some nice results:
 

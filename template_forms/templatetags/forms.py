@@ -12,7 +12,19 @@ class FormNode(Node):
     def __init__(self):
         self._i = None
 
-    def is_valid(self, context):
+    def _posted_answer(self, request):
+        if not request:
+            return ''
+        gaps = request.POST.getlist('gap')
+        if not gaps:
+            return ''
+        try:
+            gap = gaps[self._i]
+        except IndexError:
+            return ''
+        return gap
+
+    def is_valid(self, request):
         """
         Check that the data is valid.
         """
@@ -32,18 +44,8 @@ class GapFormNode(FormNode):
 
         FormNode.__init__(self)
 
-    def _posted_answer(self, context):
-        gaps = context.get('answers', None)
-        if not gaps:
-            return ''
-        try:
-            gap = gaps[self._i]
-        except IndexError:
-            return ''
-        return gap
-
-    def is_valid(self, context):
-        ans = self._posted_answer(context)
+    def is_valid(self, request):
+        ans = self._posted_answer(request)
         if not ans:
             return None
 
@@ -52,10 +54,12 @@ class GapFormNode(FormNode):
         return ans in self._answers
 
     def render(self, context):
-        valid = self.is_valid(context)
+        request = context.request
+        valid = self.is_valid(request)
+        ans = self._posted_answer(request)
 
         return format_html('<input type="text" name="gap" value="{ans}" class="form-control input-sm gap {validity_class}">',
-                           ans=self._posted_answer(context),
+                           ans=ans,
                            validity_class='' if valid is None else 'gap-valid' if valid else 'gap-invalid',
                           )
 

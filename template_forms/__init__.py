@@ -16,11 +16,11 @@ class FormTemplate(Template):
         if engine is None:
             kwargs['engine'] = engine = Engine.get_default()
 
+        # Parse this template with special tags
         engine.use_form_tags = True
         Template.__init__(self, *args, **kwargs)
         engine.use_form_tags = False
 
-        self._form_valid = None
         self._enumerate_form_nodes()
 
     @property
@@ -31,23 +31,13 @@ class FormTemplate(Template):
         for i, node in enumerate (self._form_nodes):
             node._i = i
 
-    def validate(self, context):
-        self._form_valid = all(n.is_valid(context) for n in self._form_nodes)
-        context['form_valid'] = self._form_valid
-        return self._form_valid
+    def validate(self, request):
+        return all(n.is_valid(request) for n in self._form_nodes)
 
     def render(self, context):
-        context.render_context.push()
-        try:
-            if context.template is None:
-                with context.bind_template(self):
-                    self.validate(context)
-                    return self._render(context)
-            else:
-                self.validate(context)
-                return self._render(context)
-        finally:
-            context.render_context.pop()
+        context['form_valid'] = self.validate(context.request)
+
+        return Template.render(self, context)
 
 
 class Loader(app_directories.Loader):
